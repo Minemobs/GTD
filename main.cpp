@@ -54,7 +54,7 @@ int main() {
         std::cout << "Git is not installed." << std::endl;
         return 1;
     }
-    cpr::Response r = cpr::Get(cpr::Url("https://gist.githubusercontent.com/Minemobs/c473c12c00ad6cfb4f67e6b1a56ea089/raw/f6f9de2902189b474632033c13cbf088a410c73b/gradle-template.json"));
+    cpr::Response r = cpr::Get(cpr::Url("https://raw.githubusercontent.com/Minemobs/GTD/main/gradle-template.json"));
     json j = json::parse(r.text);
     string repo;
     do {
@@ -123,7 +123,7 @@ bool contains(const json& j, const string& str) {
 
 string getRepoUrl(const json &j, const string &str) {
     for (const auto &i : j) {
-        if(iequals(i["name"], str)) return i["repoPath"];
+        if(iequals(i["name"], str)) return i["repo_path"];
     }
     //Should never be empty because every repo contains a repoPath key.
     return "";
