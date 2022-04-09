@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <algorithm>
 #include <string_view>
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
@@ -21,6 +22,8 @@
 #endif
 
 using std::cout, std::endl, std::string, nlohmann::json;
+
+const char* ws = " \t\n\r\f\v";
 
 bool isGitIsInstalled();
 
@@ -61,6 +64,12 @@ int main() {
         cout << "Write the name of the repo you want to clone" << endl;
         std::cin >> repo;
     } while(!contains(j, repo));
+    string projectName;
+    cout << "Write the new name of this repository. [Default to " << repo << "]" << endl;
+    std::cin.clear();
+    std::cin.sync();
+    std::getline(std::cin, projectName);
+    if(projectName.empty()) projectName = repo;
     cout << "Getting the url of the repository" << endl;
     string repoURL = getRepoUrl(j, repo);
     if(repoURL.empty()) {
@@ -68,7 +77,7 @@ int main() {
         return 2;
     }
     cout << "Cloning" << endl;
-    int cmdStatus = system(string("git clone ").append(repoURL).append(" 2> gitLog.txt").c_str());
+    int cmdStatus = system(string("git clone ").append(repoURL).append(" 2> gitLog.txt ").append(1, '"').append(projectName).append(1, '"').data());
     if(cmdStatus != 0) {
         cout << "An error occurred while cloning the repo." << endl;
         std::ifstream o("gitLog.txt");
@@ -80,7 +89,7 @@ int main() {
         return 3;
     }
     string _cwd = GetCurrentWorkingDirectory();
-    willExecuteScripts(repo);
+    willExecuteScripts(projectName);
     cd(_cwd.c_str());
     return 0;
 }
@@ -130,7 +139,6 @@ string getRepoUrl(const json &j, const string &str) {
 }
 
 bool isGitIsInstalled() {
-    //TODO: migrate to exec(3)
     return system(string("git --version > ").append(NUL).append(" 2> ").append(NUL).c_str()) == 0;
 }
 
