@@ -2,5 +2,9 @@
   {
     "name": "minemobs-template",
     "repo_path": "https://github.com/Minemobs/minemobs-template.git"
+  },
+  {
+    "name": "sunderia-template",
+    "repo_path": "https://github.com/Sunderia/SpigotTemplate.git"
   }
 ]

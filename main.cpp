@@ -4,6 +4,7 @@
 #include <string_view>
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
+#include <filesystem>
 
 #ifdef WIN32
 #include <direct.h>
@@ -21,27 +22,15 @@
 #define GRADLEW "gradlew"
 #endif
 
-using std::cout, std::endl, std::string, nlohmann::json;
+using std::cout, std::endl, std::cin, std::string, nlohmann::json;
 
 const char* ws = " \t\n\r\f\v";
 
 bool isGitIsInstalled();
-
 bool iequals(const std::string& a, const std::string& b);
-
 bool contains(const json &j, const string &str);
-
 string getRepoUrl(const json &j, const string &str);
-
 void willExecuteScripts(const string &repoPath);
-
-string GetCurrentWorkingDirectory() {
-    const int BUFSIZE = 4096;
-    char buf[BUFSIZE];
-    memset(buf , 0 , BUFSIZE);
-    cwd(buf , BUFSIZE - 1);
-    return buf;
-}
 
 void split(const string &str, const char& delimiter, std::vector<string> &out) {
     size_t start;
@@ -54,7 +43,7 @@ void split(const string &str, const char& delimiter, std::vector<string> &out) {
 
 int main() {
     if(!isGitIsInstalled()) {
-        std::cout << "Git is not installed." << std::endl;
+        std::cerr << "Git is not installed.\n";
         return 1;
     }
     cpr::Response r = cpr::Get(cpr::Url("https://raw.githubusercontent.com/Minemobs/GTD/main/gradle-template.json"));
@@ -62,13 +51,13 @@ int main() {
     string repo;
     do {
         cout << "Write the name of the repo you want to clone" << endl;
-        std::cin >> repo;
+        std::getline(cin, repo);
     } while(!contains(j, repo));
     string projectName;
     cout << "Write the new name of this repository. [Default to " << repo << "]" << endl;
-    std::cin.clear();
-    std::cin.sync();
-    std::getline(std::cin, projectName);
+    /*std::cin.clear();
+    std::cin.sync();*/
+    std::getline(cin, projectName);
     if(projectName.empty()) projectName = repo;
     cout << "Getting the url of the repository" << endl;
     string repoURL = getRepoUrl(j, repo);
@@ -88,14 +77,10 @@ int main() {
         o.close();
         return 3;
     }
-    string _cwd = GetCurrentWorkingDirectory();
+    string _cwd = std::filesystem::current_path();
     willExecuteScripts(projectName);
     cd(_cwd.c_str());
     return 0;
-}
-
-bool isABoolean(const string &str) {
-    return iequals(str, "true") || iequals(str, "false");
 }
 
 void willExecuteScripts(const string &repoPath) {
@@ -106,12 +91,10 @@ void willExecuteScripts(const string &repoPath) {
     }
     string executeScriptStr;
     do {
-        cout << "Do you want to execute scripts ?" << endl << "It's generally a bad idea." << endl;
-        std::cin >> executeScriptStr;
-    } while(!isABoolean(executeScriptStr));
-    if(iequals(executeScriptStr, "false")) {
-        return;
-    }
+        cout << "Do you want to execute scripts ?" << endl << "It's generally a bad idea. [Y/N]" << endl;
+        cin >> executeScriptStr;
+    } while(!iequals(executeScriptStr, "y") && !iequals(executeScriptStr, "n"));
+    if(iequals(executeScriptStr, "false")) return;
     json j;
     scriptJsonReader >> j;
     for(const auto &i : j["before_building"]) {
